@@ -3,18 +3,14 @@ package cse272;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.*;
-import org.apache.lucene.index.DirectoryReader;
+
 import org.apache.lucene.index.IndexOptions;
-import org.apache.lucene.index.IndexReader;
+
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
-import org.apache.lucene.index.Term;
+
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
-import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.TopDocs;
-import org.apache.lucene.search.WildcardQuery;
+
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 import org.json.simple.JSONArray;
@@ -24,7 +20,6 @@ import org.json.simple.parser.ParseException;
 import java.io.*;
 import java.nio.file.Paths;
 import java.nio.file.Path;
-import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
 
 public class LuceneIndexWriter {
 
@@ -51,7 +46,6 @@ public class LuceneIndexWriter {
 
     }
 
-    //Parse the input JSON file
     public JSONArray parseInputJsonFile(){
 
         JSONParser parser = new JSONParser();
@@ -71,7 +65,6 @@ public class LuceneIndexWriter {
 
     }
 
-    //Opening the Lucene Index and specify the IndexWriterConfig
     public boolean openLuceneIndex(){
         try {
 
@@ -83,12 +76,7 @@ public class LuceneIndexWriter {
 
             System.out.println(indexPath);
 
-            //IndexWriterConfig allows you specify the open mode:
-            //Available 3 options:
-            //* IndexWriterConfig.OpenMode.APPEND
-            //* IndexWriterConfig.OpenMode.CREATE
-            //* IndexWriterConfig.OpenMode.CREATE_OR_APPEND
-            indexWriterConfig.setOpenMode(OpenMode.CREATE_OR_APPEND);
+            indexWriterConfig.setOpenMode(OpenMode.CREATE);
             indexWriter = new IndexWriter(dir, indexWriterConfig);
 
             return true;
@@ -139,8 +127,6 @@ public class LuceneIndexWriter {
             if (news.get("publication_type") != null) {
                 publication_type = (String)news.get("publication_type");
             }
-
-
 
     	    String abstract_of_pub = "";
     	    if (news.get("abstract") != null) {
@@ -214,45 +200,6 @@ public class LuceneIndexWriter {
 
     }
 
-    public static void wildcardSearchOnIndex(String outputLuceneIndexPath)
-    {
-        try
-        {
-            StandardAnalyzer analyzer = new StandardAnalyzer();
-            Path indexPath = Paths.get(outputLuceneIndexPath);
-            Directory dir = FSDirectory.open(indexPath);
-            IndexReader indexReader = DirectoryReader.open(dir);
-            MultiFieldQueryParser parser = new MultiFieldQueryParser(new String[] {"title","abstract","mesh_terms"}, analyzer);
-
-            // Search documents
-            final IndexSearcher indexSearcher = new IndexSearcher(indexReader);
-
-            long startTime = System.currentTimeMillis();
-
-
-            String querystr = "Are there adverse effects on lipids when progesterone is given with estrogen replacement therapy";
-            Query query = parser.parse(QueryParser.escape(querystr));
-
-            System.out.println("\nSearching for '" + query);
-
-            TopDocs topDocs = indexSearcher.search(query,10);
-            long endTime = System.currentTimeMillis();
-
-            System.out.println("");
-            System.out.println("************************************************************************");
-            System.out.println(topDocs.totalHits + " documents found. Time taken for the search :" + (endTime - startTime) + "ms");
-            System.out.println("************************************************************************");
-            System.out.println("");
-
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-
-
-
 
     public static void main(String[] args) throws IOException
     {
@@ -271,7 +218,6 @@ public class LuceneIndexWriter {
         long startTime = System.currentTimeMillis();
 
         int Filescount = new File(inputJsonFilePath).listFiles().length;
-        System.out.println(Filescount);
 
         for (File file : files)
         {
@@ -285,8 +231,6 @@ public class LuceneIndexWriter {
             }
         }
 
-
-        //End time of Index creation
         long endTime = System.currentTimeMillis();
 
         System.out.println("");
@@ -296,8 +240,6 @@ public class LuceneIndexWriter {
         System.out.println("************************************************************************");
         System.out.println("");
 
-        //Wild card search on a single JSON element
-        wildcardSearchOnIndex(outputLuceneIndexPath);
 
     }
 

@@ -3,13 +3,11 @@ package cse272;
 
 import java.io.*;
 import java.nio.file.Paths;
-import java.util.*;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 
 import org.apache.lucene.index.*;
-import org.apache.lucene.search.similarities.ClassicSimilarity;
 
 import org.apache.lucene.queryparser.classic.QueryParser;
 import org.apache.lucene.queryparser.classic.MultiFieldQueryParser;
@@ -19,16 +17,20 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 
 import org.apache.lucene.document.Document;
+import org.apache.lucene.search.similarities.BooleanSimilarity;
 import org.apache.lucene.store.FSDirectory;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-public class SearchFilesTFIDF {
+
+
+
+public class SearchFilesBoolean {
     public static void main(String[] args) throws Exception {
         String index = "/Users/yashchhabria/Mini Projects/cse272/272-Search-Engine/Index";
-        String results_path = "/Users/yashchhabria/Mini Projects/cse272/272-Search-Engine/results/results-tfidf.txt";
+        String results_path = "/Users/yashchhabria/Mini Projects/cse272/272-Search-Engine/results/results-boolean.txt";
         IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths.get(index)));
         PrintWriter writer = null;
         try {
@@ -38,16 +40,16 @@ public class SearchFilesTFIDF {
             IndexSearcher searcher = new IndexSearcher(reader);
 
             Analyzer analyzer = new StandardAnalyzer();
-            searcher.setSimilarity(new ClassicSimilarity());
+            searcher.setSimilarity(new BooleanSimilarity());
 
             String inputJsonFilePath = "/Users/yashchhabria/Mini Projects/cse272/272-Search-Engine/data/querydata.json";
             JSONArray jsonObjects = parseInputJsonFile(inputJsonFilePath);
+
 
             MultiFieldQueryParser parser = new MultiFieldQueryParser(new String[]{"title", "abstract", "mesh_terms"}, analyzer);
 
             String queryString = "";
             String queryNumber = "";
-
 
             long startTime = System.currentTimeMillis();
 
@@ -77,8 +79,9 @@ public class SearchFilesTFIDF {
 
         for(int i=0;i<hits.length;i++){
             Document doc = searcher.doc(hits[i].doc);
+
             Integer x = i+1;
-            writer.println(queryNumber + " Q0 " + doc.get("medline_ui") + " " + x + " " + hits[i].score + " TFIDF");
+            writer.println(queryNumber + " Q0 " + doc.get("medline_ui") + " " + x + " " + hits[i].score + " BOOLEAN");
         }
     }
     public static JSONArray parseInputJsonFile(String inputJsonFilePath){
@@ -98,3 +101,4 @@ public class SearchFilesTFIDF {
     }
 
 }
+
