@@ -31,60 +31,37 @@ import org.apache.lucene.analysis.en.EnglishAnalyzer;
 
 
 
-public class SearchFiles {
+public class SearchFilesRelevance {
 
-    private SearchFiles() {}
+    private SearchFilesRelevance() {}
 
     public static void main(String[] args) throws Exception {
 
-        //--------- Create reader, writer & searcher ----------
 
         String index = "/Users/yashchhabria/Mini Projects/cse272/272-Search-Engine/Index";
-        String results_path = "my-results.txt";
+        String results_path = "/Users/yashchhabria/Mini Projects/cse272/272-Search-Engine/results/results-relevance.txt";
         IndexReader reader = DirectoryReader.open(FSDirectory.open(Paths.get(index)));
         PrintWriter writer = new PrintWriter(results_path, "UTF-8");
         IndexSearcher searcher = new IndexSearcher(reader);
 
-        //---------------- Choose Analyzer ----------------
 
-        //WhitespaceAnalyzer – Splits tokens at whitespace
-        //Analyzer analyzer = new WhitespaceAnalyzer();
-
-        //SimpleAnalyzer – Divides text at non letter characters and lowercases
-        //Analyzer analyzer = new SimpleAnalyzer();
-
-        //StopAnalyzer – Divides text at non letter characters, lowercases, and removes stop words
-        //Analyzer analyzer = new StopAnalyzer();
-
-        //StandardAnalyzer - Tokenizes based on sophisticated grammar that recognizes e-mail addresses, acronyms, etc.; lowercases and removes stop words (optional)
         Analyzer analyzer = new StandardAnalyzer();
 
-        //EnglishAnalyzer - Analyzer with enhancements for stemming English words
-        //Analyzer analyzer = new EnglishAnalyzer();
 
-        //CustomAnalyzer - Defined in CustomAnalyzer.java
-//        Analyzer analyzer = new CustomAnalyzer();
+        searcher.setSimilarity(new TermSimilarity());
 
-        //---------------- Choose Scoring method ----------------
-
-        //Vector Space Model
-        //searcher.setSimilarity(new ClassicSimilarity());
-
-        //BM25
-        searcher.setSimilarity(new ClassicSimilarity());
-
-        //---------------- Read in and parse queries ----------------
 
         String inputJsonFilePath = "/Users/yashchhabria/Mini Projects/cse272/272-Search-Engine/data/querydata.json";
 
         JSONArray jsonObjects = parseInputJsonFile(inputJsonFilePath);
 
 
-//        BufferedReader buffer = Files.newBufferedReader(Paths.get(queriesPath), StandardCharsets.UTF_8);
         MultiFieldQueryParser parser = new MultiFieldQueryParser(new String[] {"title","abstract","mesh_terms"}, analyzer);
 
         String queryString = "";
         String queryNumber = "";
+
+        long startTime = System.currentTimeMillis();
 
         for (Object O: jsonObjects) {
             JSONObject doc = (JSONObject) O;
@@ -94,13 +71,11 @@ public class SearchFiles {
             performSearch(searcher,writer,queryNumber,query);
         }
 
-        System.out.println("Reading in queries and creating search results.");
 
+        long endTime = System.currentTimeMillis();
 
+        System.out.println("Total Time taken " + (endTime - startTime) + "ms");
 
-
-//        Query query = parser.parse(QueryParser.escape(queryString));
-//        performSearch(searcher,writer,queryNumber,query);
 
         writer.close();
         reader.close();
@@ -124,7 +99,6 @@ public class SearchFiles {
         return arrayObjects;
 
     }
-    // Performs search and writes results to the writer
     public static void performSearch(IndexSearcher searcher, PrintWriter writer, String queryNumber, Query query) throws IOException {
         TopDocs results = searcher.search(query, 50);
         ScoreDoc[] hits = results.scoreDocs;
@@ -136,7 +110,6 @@ public class SearchFiles {
 
 
 
-        // Write the results for each hit
         for(int i=0;i<hits.length;i++) {
             Document doc = searcher.doc(hits[i].doc);
             List<String> fields = Arrays.asList("abstract", "title", "mesh_terms");
@@ -161,7 +134,6 @@ public class SearchFiles {
                         totalFreq = (totalFreq == null) ? freq : freq + totalFreq;
                         totalTfv.put(termText, totalFreq);
 
-//                        System.out.println("doc:" + i + ", term: " + termText + ", termFreq = " + freq);
                     } catch (Exception e) {
                         System.out.println(e);
                     }
@@ -176,7 +148,6 @@ public class SearchFiles {
                     .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
                     .forEachOrdered(x -> totalTfv_ordered.put(x.getKey(), x.getValue()));
 
-//            System.out.println("Reverse Sorted Map   : " + totalTfv_ordered);
 
             Integer Count = 0;
             String query_string = "";
@@ -189,7 +160,6 @@ public class SearchFiles {
                 query_string = query_string + " " + key;
             }
 
-//            System.out.println(query_string);
 
             Analyzer analyzer = new StandardAnalyzer();
             MultiFieldQueryParser parser = new MultiFieldQueryParser(new String[] {"title","abstract","mesh_terms"}, analyzer);
@@ -204,9 +174,10 @@ public class SearchFiles {
 
 
             for(int j=0;j<hits_relevance.length;j++){
-                Document doc_relevance = searcher.doc(hits[j].doc);
+                Document doc_relevance = searcher.doc(hits_relevance[j].doc);
 
-                writer.println(queryNumber + " 0 " + doc_relevance.get("medline_ui") + " " + j + " " + hits[j].score + " EXP");
+                Integer x = j+1;
+                writer.println(queryNumber + " Q0 " + doc_relevance.get("medline_ui") + " " + x + " " + hits_relevance[j].score + " Relevance");
             }
 
 
