@@ -158,14 +158,29 @@ public class LuceneIndexWriter {
                 source = (String)news.get("source");
             }
 
+            FieldType ft = new FieldType();
+            ft.setIndexOptions(IndexOptions.DOCS_AND_FREQS);
+            ft.setTokenized(true);
+            ft.setStored(true);
+            ft.setStoreTermVectors(true);  //Store Term Vectors
+            ft.freeze();
+            StoredField abstract_field = new StoredField("abstract",abstract_of_pub,ft);
+            document.add(abstract_field);
+            StoredField mesh_terms_field = new StoredField("mesh_terms",mesh_terms,ft);
+            document.add(mesh_terms_field);
+            StoredField title_field = new StoredField("title",title,ft);
+            document.add(title_field);
+
+
+
             document.add(new StringField("seq_id",seq_id,Field.Store.YES));
             document.add(new StringField("medline_ui",medline_ui,Field.Store.YES));
-            document.add(new TextField("mesh_terms",mesh_terms,Field.Store.YES));
-            document.add(new TextField("title",title,Field.Store.YES));
+//            document.add(new TextField("mesh_terms",mesh_terms,Field.Store.YES));
+//            document.add(new TextField("title",title,Field.Store.YES));
 
 
             document.add(new StringField("publication_type",publication_type,Field.Store.YES));
-            document.add(new TextField("abstract",abstract_of_pub,Field.Store.YES));
+//            document.add(new TextField("abstract",abstract_of_pub,Field.Store.YES,Field.TermVector.YES));
 
             document.add(new StringField("author",author,Field.Store.YES));
             document.add(new StringField("source",source,Field.Store.YES));
@@ -244,7 +259,7 @@ public class LuceneIndexWriter {
         //Folder to create index files
         String outputLuceneIndexPath = "/Users/yashchhabria/Mini Projects/cse272/272-Search-Engine/Index";
         //Folder containing input JSON files
-        String inputJsonFilePath = "/Users/yashchhabria/Mini Projects/cse272/272-Search-Engine/data";
+        String inputJsonFilePath = "/Users/yashchhabria/Mini Projects/cse272/272-Search-Engine/data/json_files";
 
         //Index folder Clean up before commencing the process
         File outputLuceneIndexFolder = new File(outputLuceneIndexPath);
