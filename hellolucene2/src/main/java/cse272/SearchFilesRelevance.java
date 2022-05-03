@@ -10,6 +10,7 @@ import org.apache.lucene.analysis.CharArraySet;
 import org.apache.lucene.analysis.standard.StandardAnalyzer;
 
 import org.apache.lucene.index.*;
+import org.apache.lucene.search.similarities.BooleanSimilarity;
 import org.apache.lucene.search.similarities.ClassicSimilarity;
 
 import org.apache.lucene.queryparser.classic.QueryParser;
@@ -48,7 +49,7 @@ public class SearchFilesRelevance {
         Analyzer analyzer = new StandardAnalyzer();
 
 
-        searcher.setSimilarity(new TermSimilarity());
+        searcher.setSimilarity(new ClassicSimilarity());
 
 
         String inputJsonFilePath = "/Users/yashchhabria/Mini Projects/cse272/272-Search-Engine/data/querydata.json";
